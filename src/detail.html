@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html style="height: 100%;">
+
+	<head>
+		<meta charset="UTF-8">
+		<title>交管问答</title>
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name='apple-touch-fullscreen' content='yes'>
+		<meta name="full-screen" content="no">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black" />
+		<meta name="format-detection" content="telephone=no" />
+		<meta name="format-detection" content="address=no" />
+		<link rel="stylesheet" href="asset/css/reset.css" />
+		<link rel="stylesheet" href="asset/css/style.css" />
+		<script src="asset/js/mr-app.js"></script>
+		<script src="asset/js/js.js"></script>
+		<!--<script src="asset/plug/Calendar.js"></script>-->
+	</head>
+
+	<body style="height: 100%">
+		<div class="NavBanner hide">
+			<ul class="navList">
+				
+			</ul>
+		</div>
+		<div class="header">
+			<a href="http://www.mylixiaoyang.com/dist/index.html">
+				<img class="menuIcon" src="asset/img/category.png" alt="">
+			</a>
+			<a href="http://www.bjjtgl.gov.cn">
+				<img class="logo" src="asset/img/jinghui2.png" alt="">
+				<p class="title">
+					<span class="chName">北京市公安局公安交通管理局</span>
+					<span class="enName">Beijing Traffic Management Bureau</span>
+				</p>
+			</a>
+			<a href="http://www.beijing.gov.cn/sjbsy/">
+				<img class="cityCenter" src="asset/img/logo_sdzc2.gif" alt="">
+			</a>
+			
+		</div>
+		<div class="content detailCon">
+			<div class="searchBox">
+				<input type="text" style="margin-left:0 " class="searchInp" placeholder="请输入要搜索的问题，10个汉字以内">
+				<button class="answerBtn">问答</button>
+			</div>
+			<h1 id="question_title"></h1>
+			<div id="font_size_control_div">
+			    <div>发布时间：<span class="time"></span>&nbsp;&nbsp;【字体: &nbsp;&nbsp;<a class="large" href="#">大</a>&nbsp;&nbsp;<a class="big" href="###">中</a>&nbsp;&nbsp;<a class="small" href="###">小</a>】</div>
+			</div>
+			<div id="process_content_flow">
+				<ul class="liuch_box">
+					
+					
+				</ul>
+			</div>
+			<p id="p_content" style="font-size: 14px;">　</p>
+			
+		</div>
+		<script>
+			var urlApi='http://qa.bjjtgl.gov.cn/';
+			var indexUrl='http://www.mylixiaoyang.com/dist/index.html'
+			var mcLength;
+
+
+		$('.large').on('click',function(){
+			$('#p_content').css('font-size','0.32rem')
+		})
+		$('.big').on('click',function(){
+			$('#p_content').css('font-size','0.28rem')
+		})
+		$('.small').on('click',function(){
+			$('#p_content').css('font-size','0.24rem')
+		})
+		
+		$(function(){
+			$('#p_content').html('')
+			//获取url链接中的参数
+			function GetQueryString(name)
+			{
+			     var reg = new RegExp("(^|&)"+ name +"=([^&]*)(&|$)");
+			     var r = window.location.search.substr(1).match(reg);
+			     if(r!=null)return  unescape(r[2]); return null;
+			}
+			 
+					console.log(GetQueryString('id'))
+				 $.ajax({
+			        url:urlApi+'initUIController/getQuestionDetailJson.do?', 
+			        type:'GET',  
+			        dataType:'jsonp', 
+			        jsonp:'callback',                          
+			        data:{'questionId':GetQueryString('id')},
+			        success:function(result){
+			        	var mc=result['mc']
+			        	var vo=result['vo']
+			        	var mcLength=mc.length
+			        	console.log(result)
+			        	 console.log(mc)
+			        	if(mc==''){
+			        		$('#p_content').html(result['detail'])
+			        	}else{
+			        		var str='';
+			        		for(var i=0;i<mc.length;i++){
+			        			var tempMc=vo[i];
+			        			var tName=tempMc['name']
+			        			var tstairProcessList=tempMc['stairProcessList']
+			        			// console.log(tName)
+			        			// console.log(tstairProcessList)
+			        			str+='<li id="item_ul_52901" class="notselect">'+
+									'<div ><strong>选择 '+tName+'：</strong></div>'
+								for(var j=0;j<tstairProcessList.length;j++){
+									var tempstair=tstairProcessList[j]
+									var tempstairName=tempstair['name']
+									if(tempstairName){
+										str+='<span class="selSX" num='+i+'  parentId='+GetQueryString('id')+' id="'+tempstair['id']+'">'+tempstair['name']+'</span>'
+									}
+									
+								}
+									
+								str+='</li><ul></ul>'
+			        		}
+			        		$('.liuch_box').append(str)
+
+			        		$('.selSX').on('click',function(){
+			        			$('#p_content').html('')
+			        			//console.log($(this))
+			        			$(this).addClass('active').siblings().removeClass('active')
+			        			var pId=$(this).attr('id')
+			        			var fh=$(this);
+			        			var num=$(this).attr('num')
+			        			fh.parent().next('ul').html('')	
+			        			getJson(fh,pId,mcLength,num)
+			        		})
+
+			       
+			        	}
+			        	
+			        },
+			        error:function(msg){
+			            alert(msg.toSource());                 //执行错误
+			        }
+			    }); 
+
+				 function getJson(fh,pId,mcLength,num){
+				 				$.ajax({
+							        url:urlApi+'initUIController/loadSubFlow.do?', 
+							        type:'GET',  
+							        dataType:'jsonp', 
+							        jsonp:'callback',                          
+							        data:{'questionId':GetQueryString('id'),'processinfo.pId':pId},
+							        success:function(result1){
+							        	if(result1==''){
+
+							        		getContentJson(fh,pId,mcLength,num)
+							        		return
+							        	}
+							        	var answer1=result1;
+							        	console.log(result1)
+							        		var str1='';
+							        		str1+='<li  class="notselect">'
+							        		for(var k=0;k<result1.length;k++){
+							        			var tempResult1=result1[k];
+							        			var sName=tempResult1['name']
+							        			//console.log(sName)
+												str1+='<span class="selSX" num='+num+'  parentId='+GetQueryString('id')+' id="'+tempResult1['id']+'">'+sName+'</span>'
+							        		}
+							        		str1+='</li><ul></ul>'
+							        		// console.log(str1)
+							        		// console.log(fh.parent().next())
+							        		fh.parent().next('ul').append(str1)
+							        		$('.selSX').off('click').on('click',function(){
+							        			$('#p_content').html('')
+							        			$(this).addClass('active').siblings().removeClass('active')
+
+							        			var pId2=$(this).attr('id')
+							        			var num=$(this).attr('num')
+							        			// console.log(pId2)
+							        			// console.log($(this))
+
+							        			var fh=$(this);
+							        			fh.parent().next('ul').html('')
+							        		
+						        					getJson(fh,pId2,mcLength,num)
+						        				
+						        		})
+
+	
+							        },
+							        error:function(msg){
+							            alert(msg.toSource());                 //执行错误
+							        }
+							    }); 
+				 }
+				 var firNum=[0,0];
+				 function getContentJson(fh,pId,mcLength,num){
+				 				if(num==0){
+				 					firNum.splice(num,1,pId);
+				 				}else{
+				 					firNum.splice(num,1,pId);
+				 				}
+
+				 	  			if(mcLength==1){
+				 	  				$.ajax({
+								        url:urlApi+'initUIController/getAnswerByquestionAndprocessIds.do?', 
+								        type:'GET',  
+								        dataType:'jsonp', 
+								        jsonp:'callback',                          
+								        data:{'questionId':GetQueryString('id'),'processIds':pId},
+								        success:function(content){
+								      		var answer1= content['answer']['baseContent'];
+								      		$('#p_content').html(answer1)
+								        },
+								        error:function(msg){
+								            alert(msg.toSource());                 //执行错误
+								        }
+								    }); 
+				 	  			}else if(mcLength==2){
+				 	  				console.log(firNum)
+				 	  				console.log(num)
+				 	  				$.ajax({
+								        url:urlApi+'initUIController/getAnswerByquestionAndprocessIds.do?', 
+								        type:'GET',  
+								        dataType:'jsonp', 
+								        jsonp:'callback',                          
+								        data:{'questionId':GetQueryString('id'),'processIds':firNum[0]+','+firNum[1]},
+								        success:function(content){
+								      		var answer1= content['answer']['baseContent'];
+								      		$('#p_content').html(answer1)
+								        },
+								        error:function(msg){
+								            alert(msg.toSource());                 //执行错误
+								        }
+								    }); 
+				 	  			}
+				 				
+				 }
+			
+			// 
+			
+
+
+			
+			var dataAll=window.localStorage.getItem("dataAll")
+			var dataAllJson=JSON.parse(dataAll)
+			console.log(dataAllJson)
+			console.log(dataAllJson)
+			$.each(dataAllJson,function(index,item){
+				$.each(item,function(index1,item1){
+					if(item1['id']==GetQueryString('id')){
+
+						$('#question_title').html(item1['name'])
+						
+						$('.time').html(item1['createTimeStr'])
+						console.log(item1['category'])
+						console.log(item1['clickCount'])
+						console.log(item1['createTimeStr'])
+						console.log(item1['digest'])
+						console.log(item1['name'])
+						console.log(item1['score'])
+					}
+				})
+			})
+
+			
+		})
+
+		
+				 $('.answerBtn').on('click',function(){
+				 	var inputVal=encodeURI($('.searchInp').val());
+				 	//window.open(encodeURI(indexUrl+'?input='+inputVal))
+				 	window.location.href=encodeURI(indexUrl+'?input='+inputVal);
+				 })
+		</script>
+	</body>
+
+</html>

@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html style="height: 100%;">
+
+	<head>
+		<meta charset="UTF-8">
+		<title>交管问答</title>
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name='apple-touch-fullscreen' content='yes'>
+		<meta name="full-screen" content="no">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black" />
+		<meta name="format-detection" content="telephone=no" />
+		<meta name="format-detection" content="address=no" />
+		<link rel="stylesheet" href="asset/css/reset.css" />
+		<link rel="stylesheet" href="asset/css/style.css" />
+		<script src="asset/js/mr-app.js"></script>
+		<script src="asset/js/js.js"></script>
+		<!--<script src="asset/plug/Calendar.js"></script>-->
+	</head>
+
+	<body style="height: 100%">
+		<div class="NavBanner hide">
+			<ul class="navList navListTop">
+				
+			</ul>
+			<ul class="navList navListB">
+				
+			</ul>
+		</div>
+		<div class="header">
+			<img class="menuIcon" src="asset/img/category.png" alt="">
+			<a href="http://www.bjjtgl.gov.cn">
+				<img class="logo" src="asset/img/jinghui2.png" alt="">
+				<p class="title">
+					<span class="chName">北京市公安局公安交通管理局</span>
+					<span class="enName">Beijing Traffic Management Bureau</span>
+				</p>
+			</a>
+			<a href="http://www.beijing.gov.cn/sjbsy/">
+				<img class="cityCenter" src="asset/img/logo_sdzc2.gif" alt="">
+			</a>
+			
+			
+			
+		</div>
+		<div class="content">
+			<div class="searchBox">
+				<input type="text" id="searchInp" class="searchInp" placeholder="请输入要搜索的问题，10个汉字以内">
+				<button class="searchAn">问答</button>
+			</div>
+			<div class="ansListbox">
+				<ul class="ansList">
+					
+				</ul>
+			</div>
+		</div>
+		<script type="text/javascript">
+		var dataAll=[];
+		var urlApi='http://qa.bjjtgl.gov.cn/';
+		//详情页地址
+			var detailUrl='http://localhost:82/detail.html';
+
+		//翻页function
+
+		function prevFn(prevNum,nextNum,category,keyWord){
+			console.log(prevNum)
+			console.log(nextNum)
+			if(prevNum==1&&nextNum==1){
+				$('.prev').removeClass('active')
+				$('.next').removeClass('active')
+			}
+			// if(prevNum!=1){
+			// 	$('.prev').addClass('active')
+			// }else{
+			// 	$('.prev').removeClass('active')
+			// }
+			// if(nextNum!=1){
+			// 	$('.next').addClass('active')
+			// }else{
+			// 	$('.next').removeClass('active')
+			// }
+
+			var prevNum=prevNum;
+			var nextNum=nextNum;
+			var category=category;
+			        		$('.prev').on('click',function(){
+			        		var curPage=$(this).attr('pageCur');
+			        		var prev=curPage==prevNum?prevNum:curPage-1;
+			        		console.log(prevNum==curPage)
+			        		console.log(curPage)
+			        		console.log(prevNum)
+			        		console.log(prev)
+			        		$.ajax({
+							        url:urlApi+'/initUIController/getSearchJsonByCategory.do', 
+							        type:'GET',  
+							        dataType:'jsonp', 
+							        jsonp:'callback', 
+							        data:{'sourceType':100,'category':category,'sortFlag':'','keyWord':keyWord,'currentPage':prev},                         
+							        //jsonpCallback:'jsonp_callback7',  
+							        success:function(result){ 
+							        	console.log(result)
+							        	var resultArray=JSON.parse(result['array'])
+							        	dataAll.push(resultArray)
+							        	dataAllJson=JSON.stringify(dataAll)
+							        	window.localStorage.setItem("dataAll",dataAllJson)
+							        	var prevStr=''
+							        	for(var k in resultArray){
+							        		prevStr+='<li value="'+resultArray[k]['id']+'"><a href="#"><p>'+resultArray[k]['name']+'</p></a></li>'
+							        	}
+							        	prevStr+='<button class="prev " pageCur="'+prev+'">上一页</button><button  class="next" pageCur="'+prev+'">下一页</button>'
+							        	$('.ansList').html('');
+							        	$('.ansList').append(prevStr)
+							        	if(prev<nextNum&&prev>prevNum){
+							        		$('.prev').addClass('active')
+							        		$('.next').addClass('active')
+							        	}
+							        	if(prev==prevNum){
+							        		$('.prev').removeClass('active')
+							        		$('.next').addClass('active')
+							        	}
+							        	if(prev==nextNum){
+							        		$('.prev').addClass('active')
+							        		$('.next').removeClass('active')
+							        	}
+							        	prevFn(prevNum,nextNum,category,keyWord)
+							        	nextFn(prevNum,nextNum,category,keyWord)
+							        	$('.ansList li').off('click').on('click',function(){
+							        		var id=$(this).attr('value')
+							        		console.log(id)
+							        		var urlD=detailUrl+'?id='+id;
+							        		console.log(urlD)
+							        		window.location.href=detailUrl+'?id='+id;
+							        	})
+							        },
+							        err:function(err){
+							        	alert(err)
+							        }
+							    })
+			        		})
+			        	}
+
+		function nextFn(prevNum,nextNum,category,keyWord){
+			console.log(prevNum)
+			console.log(nextNum)
+			//alert(keyWord)
+			if(prevNum==1&&nextNum==1){
+				$('.prev').removeClass('active')
+				$('.next').removeClass('active')
+			}
+			// if(prevNum!=1){
+			// 	$('.prev').addClass('active')
+			// }else{
+			// 	$('.prev').removeClass('active')
+			// }
+			// if(nextNum!=1){
+			// 	$('.next').addClass('active')
+			// }else{
+			// 	$('.next').removeClass('active')
+			// }
+			        		var prevNum=prevNum;
+			        		var nextNum=nextNum;
+			        		var category=category;
+			        		$('.next').on('click',function(){
+			        		var curPage=$(this).attr('pageCur');
+			        		var next=curPage==nextNum?nextNum:parseInt(curPage)+1;
+			        		// $(this).attr('pageCur',next)
+			        		// $('.prev').attr('pageCur',next)
+			        		console.log(next)
+			        		$.ajax({
+							        url:urlApi+'/initUIController/getSearchJsonByCategory.do', 
+							        type:'GET',  
+							        dataType:'jsonp', 
+							        jsonp:'callback', 
+							        data:{'sourceType':100,'category':category,'sortFlag':'','keyWord':keyWord,'currentPage':next},                         
+							        //jsonpCallback:'jsonp_callback7',  
+							        success:function(result){ 
+							        	console.log(result)
+							        	var resultArray=JSON.parse(result['array'])
+							        	dataAll.push(resultArray)
+							        	dataAllJson=JSON.stringify(dataAll)
+							        	window.localStorage.setItem("dataAll",dataAllJson)
+							        	var nextStr=''
+							        	for(var k in resultArray){
+							        		nextStr+='<li value="'+resultArray[k]['id']+'"><a href="#"><p>'+resultArray[k]['name']+'</p></a></li>'
+							        	}
+							        	nextStr+='<button class="prev " pageCur="'+next+'">上一页</button><button  class="next" pageCur="'+next+'">下一页</button>'
+							        	$('.ansList').html('');
+							        	$('.ansList').append(nextStr)
+							        	if(next<nextNum&&next>prevNum){
+							        		$('.prev').addClass('active')
+							        		$('.next').addClass('active')
+
+							        	}
+							        	if(next==prevNum){
+							        		$('.prev').removeClass('active')
+							        		$('.next').addClass('active')
+							        	}
+							        	if(next==nextNum){
+							        		$('.prev').addClass('active')
+							        		$('.next').removeClass('active')
+							        	}
+							        	if(resultArray.length==10){
+							        		nextFn(prevNum,nextNum,category,keyWord)
+							        	 	
+							        	}else{
+							        		$('.next').removeClass('active')
+							        	}
+							        	prevFn(prevNum,nextNum,category,keyWord)
+							        	 
+							        	 $('.ansList li').off('click').on('click',function(){
+							        		var id=$(this).attr('value')
+							        		console.log(id)
+							        		var urlD=detailUrl+'?id='+id;
+							        		console.log(urlD)
+							        		window.location.href=detailUrl+'?id='+id;
+							        	})
+							        },
+							        err:function(err){
+							        	alert(err)
+							        }
+							    })
+			        		})
+
+			        	}
+
+		function sideNav(category,keyWord){
+			$.ajax({
+							        url:urlApi+'/initUIController/getSearchJsonByCategory.do', 
+							        type:'GET',  
+							        dataType:'jsonp', 
+							        jsonp:'callback', 
+							        data:{'sourceType':100,'category':category,'sortFlag':'','keyWord':keyWord},                         
+							        //jsonpCallback:'jsonp_callback7',  
+							        success:function(result){  
+							        	var resultLeftSide=JSON.parse(result['leftSide'])
+							        	var resultArray=JSON.parse(result['array'])
+							        	dataAll.push(resultArray)
+							        	dataAllJson=JSON.stringify(dataAll)
+							        	window.localStorage.setItem("dataAll",dataAllJson)
+							        	console.log(resultLeftSide)
+							        	console.log(resultArray)
+							        	var Arrstr=''
+							        	for(var k in resultArray){
+							        		Arrstr+='<li value="'+resultArray[k]['id']+'"><a href="#"><p>'+resultArray[k]['name']+'</p></a></li>'
+							        	}
+							        	Arrstr+='<button class="prev"  pageCur="1">上一页</button><button class="next"  pageCur="1">下一页</button>'
+							        	$('.ansList').html('');
+							        	$('.ansList').append(Arrstr)
+							        	if($('.prev').attr('pageCur')==1){
+											$('.prev').removeClass('active')
+											$('.next').addClass('active')
+										}
+							       	 //点击翻页
+							        	prevFn(1,8,category)
+							        	 nextFn(1,8,category)
+							        	$('.ansList li').off('click').on('click',function(){
+							        		var id=$(this).attr('value')
+							        		console.log(id)
+							        		var urlD=detailUrl+'?id='+id;
+							        		console.log(urlD)
+							        		window.location.href=detailUrl+'?id='+id;
+							        	})
+							        },
+							        error:function(msg){
+							            alert(msg.toSource());                 //执行错误
+							        }
+							    });
+		}
+			//详情页地址
+			//var detailUrl='http://localhost:82/detail.html';
+			//$(function(){
+				$.ajax({
+			        url:urlApi+'initUIController/getSearchJson.do', 
+			        type:'GET',  
+			        dataType:'jsonp', 
+			        jsonp:'callback',                          
+			        // jsonpCallback:'jsonp_callback2',  
+			        success:function(result){  
+
+			        	var Navstr1='';
+			        	var Navstr2='';
+			        	var resultLeftSide=JSON.parse(result['leftSide'])
+			        	var resultArray=JSON.parse(result['array'])
+			        	dataAll.push(resultArray)
+			        	dataAllJson=JSON.stringify(dataAll)
+			        	window.localStorage.setItem("dataAll",dataAllJson)
+			        	console.log(resultLeftSide)
+			        	console.log(resultArray)
+			        	console.log('1111111')
+			        	dataAll.push(resultArray)
+			        	dataAllJson=JSON.stringify(dataAll)
+			        	window.localStorage.setItem("dataAll",dataAllJson)
+			        	for(var i in resultLeftSide){
+			        		if(i=='所有结果'){
+			        			Navstr1+='<li navName="所有结果"><a href="#">'+i+':('+resultLeftSide[i]+')</a></li>'
+			        		}else if(i=='驾驶人业务'){
+			        			Navstr1+='<li  navName="驾驶人业务"><a href="#">'+i+':('+resultLeftSide[i]+')</a></li>'
+			        		}else if(i=='机动车业务'){
+			        			Navstr1+='<li navName="机动车业务"><a href="#">'+i+':('+resultLeftSide[i]+')</a></li>'
+			        		}else if(i=='法律法规适用'){
+			        			Navstr1+='<li navName="法律法规适用"><a href="#">'+i+':('+resultLeftSide[i]+')</a></li>'
+			        		}else if(i=='大家都在问'){
+
+			        			Navstr2+='<li style="font-size:0.3rem;color:#000;font-weight:bold">'+i+'</li>'
+			        		}else{
+			        			Navstr2+='<li><a style="font-size:0.3rem;padding-left:0.5rem" href="#">'+i+'</a></li>'
+			        		}
+			        	}
+			        	$('.NavBanner .navListTop').append(Navstr1)
+			        	$('.NavBanner .navListB').append(Navstr2)
+			        	var Arrstr=''
+			        	for(var k in resultArray){
+			        		Arrstr+='<li value="'+resultArray[k]['id']+'"><a href="#"><p>'+resultArray[k]['name']+'</p></a></li>'
+			        	}
+			        	Arrstr+='<button class="prev" pageCur="1">上一页</button><button  class="next" pageCur="1">下一页</button>'
+			        	$('.ansList').html('');
+			        	$('.ansList').append(Arrstr)
+			        	//alert('2222')
+			        	if($('.prev').attr('pageCur')==1){
+							$('.prev').removeClass('active')
+							$('.next').addClass('active')
+						}
+			        	//点击翻页
+			        	prevFn(1,15,'')
+			        	nextFn(1,15,'')
+			        	
+			        	
+
+			        	//点击进入详情页
+			        	$('.ansList li').off('click').on('click',function(){
+			        		var id=$(this).attr('value')
+			        		console.log(id)
+			        		var urlD=detailUrl+'?id='+id;
+			        		console.log(urlD)
+			        		window.location.href=detailUrl+'?id='+id;
+			        	})
+			        	//左边导航
+			        	$('.navListTop li').off('click').on('click',function(){
+			        		//alert('navListTop')
+			        		$('.NavBanner').animate({left:'-7.5rem',opacity:0},'slow');
+							$('.NavBanner').addClass('hide')
+						 	var indexNav=$(this).index()
+						 	console.log($(this))
+						 	console.log($(this).attr('navName')=='所有结果')
+						 	//驾驶人业务
+						 	if($(this).text()=='所有结果'){
+						 		sideNav('所有结果','')
+						 	}else if($(this).attr('navName')=='驾驶人业务'){
+						 		 sideNav('驾驶人业务','')
+						 	}else if($(this).attr('navName')=='机动车业务'){
+						 		sideNav('机动车业务','')
+						 	}else if($(this).attr('navName')=='法律法规适用'){
+						 		sideNav('法律法规适用','')
+						 	}
+						 })
+						$('.navListB li').off('click').on('click',function(){
+							//alert('navListB')
+			        		$('.NavBanner').animate({left:'-7.5rem',opacity:0},'slow');
+							$('.NavBanner').addClass('hide')
+						 	var indexNav=$(this).index()
+						 	console.log(indexNav)
+						 	//驾驶人业务
+						 	if(indexNav==0){
+						 		//这个是‘大家都在问字段’
+						 	}else{
+						 		var keyWord=$(this).children().html()
+						 		console.log(keyWord)
+						 		$.ajax({
+							        url:urlApi+'/initUIController/getSearchJsonByCategory.do', 
+							        type:'GET',  
+							        dataType:'jsonp', 
+							        jsonp:'callback', 
+							        data:{'sourceType':100,'category':'','sortFlag':'','keyWord':keyWord},                         
+							        //jsonpCallback:'jsonp_callback7',  
+							        success:function(result){  
+							        	var resultLeftSide=JSON.parse(result['leftSide'])
+							        	var resultArray=JSON.parse(result['array'])
+							        	dataAll.push(resultArray)
+							        	dataAllJson=JSON.stringify(dataAll)
+							        	window.localStorage.setItem("dataAll",dataAllJson)
+							        	console.log(resultLeftSide)
+							        	console.log(resultArray)
+							        	var Arrstr=''
+							        	for(var k in resultArray){
+							        		Arrstr+='<li value="'+resultArray[k]['id']+'"><a href="#"><p>'+resultArray[k]['name']+'</p></a></li>'
+							        	}
+							        	if(resultArray.length==10){
+							        		Arrstr+='<button class="prev"  pageCur="1">上一页</button><button class="next"  pageCur="1">下一页</button>'
+							        	}
+							        	
+							        	$('.ansList').html('');
+							        	$('.ansList').append(Arrstr)
+							        	if($('.prev').attr('pageCur')==1){
+											$('.prev').removeClass('active')
+											$('.next').addClass('active')
+										}
+										console.log(keyWord)
+							        	prevFn(1,15,'',keyWord)
+			        					nextFn(1,15,'',keyWord)
+							      
+							        	$('.ansList li').off('click').on('click',function(){
+							        		var id=$(this).attr('value')
+							        		console.log(id)
+							        		var urlD=detailUrl+'?id='+id;
+							        		console.log(urlD)
+							        		window.location.href=detailUrl+'?id='+id;
+							        	})
+							        	$('.searchInp').html('')
+							        	$('.searchInp').val(keyWord)
+
+
+							        	console.log(result)
+							        	var Navstr1=''
+										for(var i in resultLeftSide){
+											console.log(i)
+							        		if(i=='所有结果'){
+							        			Navstr1+='<li><a href="#">'+i+':('+resultLeftSide[i]+')</a></li>'
+							        		}else if(i=='驾驶人业务'){
+							        			Navstr1+='<li><a href="#">'+i+':('+resultLeftSide[i]+')</a></li>'
+							        		}else if(i=='机动车业务'){
+							        			Navstr1+='<li><a href="#">'+i+':('+resultLeftSide[i]+')</a></li>'
+							        		}else if(i=='法律法规适用'){
+							        			Navstr1+='<li><a href="#">'+i+':('+resultLeftSide[i]+')</a></li>'
+							        		}
+							        	}
+							        	$('.NavBanner .navListTop').html('')
+							        	$('.NavBanner .navListTop').append(Navstr1)
+							        	$('.navListTop li').off('click').on('click',function(){
+							        		//alert('navListTop')
+							        		var inputVal=$('.searchInp').val()
+							        		console.log(inputVal)
+							        		$('.NavBanner').animate({left:'-7.5rem',opacity:0},'slow');
+											$('.NavBanner').addClass('hide')
+										 	var indexNav=$(this).index()
+										 	console.log($(this))
+										 	console.log($(this).attr('navName')=='所有结果')
+										 	//驾驶人业务
+										 	if($(this).text()=='所有结果'){
+										 		sideNav('所有结果','')
+										 	}else if($(this).attr('navName')=='驾驶人业务'){
+										 		 sideNav('驾驶人业务','')
+										 	}else if($(this).attr('navName')=='机动车业务'){
+										 		sideNav('机动车业务','')
+										 	}else if($(this).attr('navName')=='法律法规适用'){
+										 		sideNav('法律法规适用','')
+										 	}
+										 })
+
+
+
+
+
+
+							        },
+							        error:function(msg){
+							            alert(msg.toSource());                 //执行错误
+							        }
+							    });
+						 	}
+						 	
+						 })
+			        },
+			        error:function(msg){
+			            alert(msg.toSource());                 //执行错误
+			        }
+			    }); 
+				//自执行函数搜索内容
+				
+
+				
+			//})
+			$('.menuIcon').off('click').on('click',function(){
+				var status=$('.NavBanner').hasClass('hide')
+				console.log(status)
+				if(status){
+					$('.NavBanner').animate({left:0,opacity:1},'slow');
+					$('.NavBanner').removeClass('hide')
+				}else{
+					$('.NavBanner').animate({left:'-7.5rem',opacity:0},'slow');
+					$('.NavBanner').addClass('hide')
+				}
+			})
+			$('.searchAn').off('click').on('click',function(){
+				var keyWord=$('.searchInp').val()
+				
+					$.ajax({
+							        url:urlApi+'/initUIController/getSearchJsonByCategory.do', 
+							        type:'GET',  
+							        dataType:'jsonp', 
+							        jsonp:'callback', 
+							        data:{'sourceType':100,'category':'','sortFlag':'','keyWord':keyWord},                         
+							  
+							        success:function(result){  
+
+							        	var resultLeftSide=JSON.parse(result['leftSide'])
+							        	var resultArray=JSON.parse(result['array'])
+							        	dataAll.push(resultArray)
+							        	dataAllJson=JSON.stringify(dataAll)
+							        	window.localStorage.setItem("dataAll",dataAllJson)
+							        	console.log(resultLeftSide)
+							        	console.log(resultArray)
+							        	var Navstr1=''
+										for(var i in resultLeftSide){
+											console.log(i)
+							        		if(i=='所有结果'){
+							        			Navstr1+='<li><a href="#">'+i+':('+resultLeftSide[i]+')</a></li>'
+							        		}else if(i=='驾驶人业务'){
+							        			Navstr1+='<li><a href="#">'+i+':('+resultLeftSide[i]+')</a></li>'
+							        		}else if(i=='机动车业务'){
+							        			Navstr1+='<li><a href="#">'+i+':('+resultLeftSide[i]+')</a></li>'
+							        		}else if(i=='法律法规适用'){
+							        			Navstr1+='<li><a href="#">'+i+':('+resultLeftSide[i]+')</a></li>'
+							        		}
+							        	}
+							        	$('.NavBanner .navListTop').html('')
+							        	$('.NavBanner .navListTop').append(Navstr1)
+							        	$('.navListTop li').off('click').on('click',function(){
+							        		//alert('navListTop')
+							        		var inputVal=$('.searchInp').val()
+							        		console.log(inputVal)
+							        		$('.NavBanner').animate({left:'-7.5rem',opacity:0},'slow');
+											$('.NavBanner').addClass('hide')
+										 	var indexNav=$(this).index()
+										 	console.log($(this))
+										 	console.log($(this).attr('navName')=='所有结果')
+										 	//驾驶人业务
+										 	if($(this).text()=='所有结果'){
+										 		sideNav('所有结果','')
+										 	}else if($(this).attr('navName')=='驾驶人业务'){
+										 		 sideNav('驾驶人业务','')
+										 	}else if($(this).attr('navName')=='机动车业务'){
+										 		sideNav('机动车业务','')
+										 	}else if($(this).attr('navName')=='法律法规适用'){
+										 		sideNav('法律法规适用','')
+										 	}
+										 })
+							        	var Arrstr=''
+							        	for(var k in resultArray){
+							        		Arrstr+='<li value="'+resultArray[k]['id']+'"><a href="#"><p>'+resultArray[k]['name']+'</p></a></li>'
+							        	}
+							        	if(resultArray.length==10){
+							        		Arrstr+='<button class="prev"  pageCur="1">上一页</button><button class="next"  pageCur="1">下一页</button>'
+							        	}
+							        	
+							        	$('.ansList').html('');
+							        	$('.ansList').append(Arrstr)
+							        	if($('.prev').attr('pageCur')==1){
+											$('.prev').removeClass('active')
+											$('.next').addClass('active')
+										}
+										console.log(keyWord)
+							        	prevFn(1,15,'',keyWord)
+			        					nextFn(1,15,'',keyWord)
+							        	$('.ansList li').off('click').on('click',function(){
+							        		var id=$(this).attr('value')
+							        		console.log(id)
+							        		var urlD=detailUrl+'?id='+id;
+							        		console.log(urlD)
+							        		window.location.href=detailUrl+'?id='+id;
+							        	})
+							        	$('.searchInp').html('')
+							        	$('.searchInp').val(keyWord)
+							        },
+							        error:function(msg){
+							            alert(msg.toSource());                 //执行错误
+							        }
+							    });
+				
+			})
+
+
+			function GetQueryString(name)
+			{
+			     var reg = new RegExp("(^|&)"+ name +"=([^&]*)(&|$)");
+			     var r = window.location.search.substr(1).match(reg);
+			     if(r!=null)return  unescape(r[2]); return null;
+			}
+
+			
+			
+			(function(){
+
+					var urlinfo = window.location.href;//获取url 
+					var inputVal1 = decodeURI(urlinfo).split("?")[1].split("=")[1];//拆分url得到”=”后面的参数 
+					//var inputVal=decodeURI(inputVal1) 
+				 	//var inputVal=decodeURI(GetQueryString('input'))
+				 	console.log(decodeURI(inputVal1))
+					$('#searchInp').attr('value',decodeURI(inputVal1));
+					$.ajax({
+							        url:urlApi+'/initUIController/getSearchJsonByCategory.do', 
+							        type:'GET',  
+							        dataType:'jsonp', 
+							        jsonp:'callback', 
+							        data:{'sourceType':100,'category':'','sortFlag':'','keyWord':decodeURI(inputVal1)},                         
+							  
+							        success:function(result){  
+							        	alert('222')
+							        	var resultLeftSide=JSON.parse(result['leftSide'])
+							        	var resultArray=JSON.parse(result['array'])
+							        	dataAll.push(resultArray)
+							        	dataAllJson=JSON.stringify(dataAll)
+							        	window.localStorage.setItem("dataAll",dataAllJson)
+							        	console.log(resultLeftSide)
+							        	console.log(resultArray)
+							        	
+							        	
+							        	
+							        	var Navstr1=''
+										for(var i in resultLeftSide){
+											console.log(i)
+							        		if(i=='所有结果'){
+							        			Navstr1+='<li><a href="#">'+i+':('+resultLeftSide[i]+')</a></li>'
+							        		}else if(i=='驾驶人业务'){
+							        			Navstr1+='<li><a href="#">'+i+':('+resultLeftSide[i]+')</a></li>'
+							        		}else if(i=='机动车业务'){
+							        			Navstr1+='<li><a href="#">'+i+':('+resultLeftSide[i]+')</a></li>'
+							        		}else if(i=='法律法规适用'){
+							        			Navstr1+='<li><a href="#">'+i+':('+resultLeftSide[i]+')</a></li>'
+							        		}
+							        	}
+							        	$('.NavBanner .navListTop').html('')
+							        	$('.NavBanner .navListTop').append(Navstr1)
+							        	var inputVal=$('.searchInp').val()
+							        	$('.navListTop li').off('click').on('click',function(){
+							        		//alert('navListTop')
+							        		
+							        		console.log(inputVal)
+							        		$('.NavBanner').animate({left:'-7.5rem',opacity:0},'slow');
+											$('.NavBanner').addClass('hide')
+										 	var indexNav=$(this).index()
+										 	console.log($(this))
+										 	console.log($(this).attr('navName')=='所有结果')
+										 	//驾驶人业务
+										 	if($(this).text()=='所有结果'){
+										 		sideNav('所有结果',inputVal)
+										 	}else if($(this).attr('navName')=='驾驶人业务'){
+										 		 sideNav('驾驶人业务',inputVal)
+										 	}else if($(this).attr('navName')=='机动车业务'){
+										 		sideNav('机动车业务',inputVal)
+										 	}else if($(this).attr('navName')=='法律法规适用'){
+										 		sideNav('法律法规适用',inputVal)
+										 	}
+										 })
+							        	var Arrstr=''
+							        	for(var k in resultArray){
+							        		Arrstr+='<li value="'+resultArray[k]['id']+'"><a href="#"><p>'+resultArray[k]['name']+'</p></a></li>'
+							        	}
+							        	if(resultArray.length==10){
+							        		Arrstr+='<button class="prev"  pageCur="1">上一页</button><button class="next"  pageCur="1">下一页</button>'
+							        	}
+							        	
+							        	$('.ansList').html('');
+							        	$('.ansList').append(Arrstr)
+							        	if($('.prev').attr('pageCur')==1){
+											$('.prev').removeClass('active')
+											$('.next').addClass('active')
+										}
+										console.log(inputVal)
+							        	prevFn(1,15,'',inputVal)
+			        					nextFn(1,15,'',inputVal)
+							        	$('.ansList li').off('click').on('click',function(){
+							        		var id=$(this).attr('value')
+							        		console.log(id)
+							        		var urlD=detailUrl+'?id='+id;
+							        		console.log(urlD)
+							        		window.location.href=detailUrl+'?id='+id;
+							        	})
+							        },
+							        error:function(msg){
+							            alert(msg.toSource());                 //执行错误
+							        }
+					});
+				})();
+		
+				
+
+		</script>
+	</body>
+
+</html>
